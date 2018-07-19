@@ -54,7 +54,7 @@ class PhinxApplication extends Application
             $version = $composerConfig->version;
         }
 
-        parent::__construct('Phinx by CakePHP - https://phinx.org.', $version);
+        parent::__construct('ZlsPHP Phinx Package', $version);
 
         $this->addCommands([
             new Command\Init(),
