@@ -8,7 +8,7 @@ class $className extends AbstractMigration
      * Change Method.
      * Write your reversible migrations using this method.
      * More information on writing migrations is available here:
-     * https://docs.73zls.com/zls-php/#/packages-migration/migration
+     * https://docs.73zls.com/zls-php/#/packages-migration/writing-migrations?id=%E5%88%9B%E5%BB%BA%E8%BF%81%E7%A7%BB%E8%84%9A%E6%9C%AC
      * The following commands can be used in this method
      * automatically reverse them when rolling back:
      *    createTable
@@ -24,6 +24,23 @@ class $className extends AbstractMigration
      * with the Table class.
      */
     public function change()
+    {
+
+
+    }
+
+    /**
+     * Migrate Up.
+     */
+    public function up()
+    {
+
+    }
+
+    /**
+     * Migrate Down.
+     */
+    public function down()
     {
 
     }
