@@ -28,6 +28,8 @@
  */
 namespace Phinx\Util;
 
+use Z;
+
 class Util
 {
     /**

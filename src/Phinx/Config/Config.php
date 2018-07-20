@@ -28,6 +28,8 @@
  */
 namespace Phinx\Config;
 
+use Z;
+
 /**
  * Phinx configuration class.
  *
@@ -77,20 +79,10 @@ class Config implements ConfigInterface, NamespaceAwareInterface
      */
     public static function fromPhp($configFilePath)
     {
-        ob_start();
+        //ob_start();
         /** @noinspection PhpIncludeInspection */
         $configArray = include($configFilePath);
-
-        // Hide console output
-        ob_end_clean();
-
-        if (!is_array($configArray)) {
-            throw new \RuntimeException(sprintf(
-                'PHP file \'%s\' must return an array',
-                $configFilePath
-            ));
-        }
-
+        //ob_end_clean();
         return new static($configArray, $configFilePath);
     }
 

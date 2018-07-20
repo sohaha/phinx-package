@@ -46,6 +46,7 @@ use Phinx\Db\Table\Table;
 use Phinx\Db\Util\AlterInstructions;
 use Phinx\Migration\MigrationInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Z;
 
 /**
  * Phinx PDO Adapter.
@@ -154,22 +155,19 @@ abstract class PdoAdapter extends AbstractAdapter implements DirectActionInterfa
     /**
      * {@inheritdoc}
      */
-    public function execute($sql)
+    public function execute($sql,$showSql = true)
     {
         $this->verboseLog($sql);
 
         if ($this->isDryRunEnabled()) {
             return 0;
         }
+        if($showSql&&z::getOpt('-sql')){
+            echo $sql.PHP_EOL;
+        }
         return $this->getConnection()->exec($sql);
     }
 
-    /**
-     * Returns the Cake\Database connection object using the same underlying
-     * PDO object as this connection.
-     *
-     * @return \Cake\Database\Connection
-     */
     abstract public function getDecoratedConnection();
 
     /**
@@ -362,7 +360,7 @@ abstract class PdoAdapter extends AbstractAdapter implements DirectActionInterfa
                 $this->castToBool(false)
             );
 
-            $this->execute($sql);
+            $this->execute($sql,false);
         } else {
             // down
             $sql = sprintf(
@@ -372,7 +370,7 @@ abstract class PdoAdapter extends AbstractAdapter implements DirectActionInterfa
                 $migration->getVersion()
             );
 
-            $this->execute($sql);
+            $this->execute($sql,false);
         }
 
         return $this;

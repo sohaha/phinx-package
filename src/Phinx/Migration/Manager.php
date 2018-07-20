@@ -28,6 +28,7 @@
  */
 namespace Phinx\Migration;
 
+use Phinx\Config\Config;
 use Phinx\Config\ConfigInterface;
 use Phinx\Config\NamespaceAwareInterface;
 use Phinx\Migration\Manager\Environment;
@@ -115,10 +116,10 @@ class Manager
             $output->writeln('');
 
             switch ($this->getConfig()->getVersionOrder()) {
-                case \Phinx\Config\Config::VERSION_ORDER_CREATION_TIME:
+                case Config::VERSION_ORDER_CREATION_TIME:
                     $migrationIdAndStartedHeader = "<info>[Migration ID]</info>  Started            ";
                     break;
-                case \Phinx\Config\Config::VERSION_ORDER_EXECUTION_TIME:
+                case Config::VERSION_ORDER_EXECUTION_TIME:
                     $migrationIdAndStartedHeader = "Migration ID    <info>[Started          ]</info>";
                     break;
                 default:

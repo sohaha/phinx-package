@@ -36,6 +36,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
+use Z;
 
 class Create extends AbstractCommand
 {
@@ -111,14 +112,12 @@ class Create extends AbstractCommand
         }
 
         $paths = $this->getConfig()->getMigrationPaths();
-
         // No paths? That's a problem.
         if (empty($paths)) {
             throw new \Exception('No migration paths set in your Phinx configuration file.');
         }
 
         $paths = Util::globAll($paths);
-
         if (empty($paths)) {
             throw new \Exception(
                 'You probably used curly braces to define migration path in your Phinx configuration file, ' .
@@ -245,7 +244,6 @@ class Create extends AbstractCommand
                     ));
                 }
             }
-
             // Does the class implement the required interface?
             if (!$aliasedClassName && !is_subclass_of($creationClassName, self::CREATION_INTERFACE)) {
                 throw new \InvalidArgumentException(sprintf(

@@ -46,6 +46,7 @@ class SeedRun extends AbstractCommand
         $this->setName($this->getName() ?: 'seed:run')
             ->setDescription('Run database seeders')
             ->addOption('--seed', '-s', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'What is the name of the seeder?')
+            ->addOption('--sql', null, InputOption::VALUE_REQUIRED)
             ->setHelp(
                 <<<EOT
 The <info>seed:run</info> command runs all available or individual seeders

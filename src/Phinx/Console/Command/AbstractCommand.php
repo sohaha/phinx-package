@@ -33,11 +33,11 @@ use Phinx\Config\ConfigInterface;
 use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Migration\Manager;
 use Phinx\Util\Util;
-use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Z;
 
 /**
  * Abstract command, contains bootstrapping info
@@ -186,45 +186,6 @@ abstract class AbstractCommand extends Command
         return $this->manager;
     }
 
-    /**
-     * Returns config file path
-     *
-     * @param \Symfony\Component\Console\Input\InputInterface $input
-     * @return string
-     */
-    protected function locateConfigFile(InputInterface $input)
-    {
-        $configFile = $input->getOption('configuration');
-
-        $useDefault = false;
-
-        if ($configFile === null || $configFile === false) {
-            $useDefault = true;
-        }
-
-        $cwd = getcwd();
-
-        // locate the phinx config file (default: phinx.yml)
-        // TODO - In future walk the tree in reverse (max 10 levels)
-        $locator = new FileLocator([
-            $cwd . DIRECTORY_SEPARATOR
-        ]);
-
-        if (!$useDefault) {
-            // Locate() throws an exception if the file does not exist
-            return $locator->locate($configFile, $cwd, $first = true);
-        }
-
-        $possibleConfigFiles = ['phinx.php', 'phinx.json', 'phinx.yml'];
-        foreach ($possibleConfigFiles as $configFile) {
-            try {
-                return $locator->locate($configFile, $cwd, $first = true);
-            } catch (\InvalidArgumentException $exception) {
-                $lastException = $exception;
-            }
-        }
-        throw $lastException;
-    }
 
     /**
      * Parse the config file and load it into the config object
@@ -236,27 +197,9 @@ abstract class AbstractCommand extends Command
      */
     protected function loadConfig(InputInterface $input, OutputInterface $output)
     {
-        $configFilePath = $this->locateConfigFile($input);
-        //$output->writeln('<info>using config file</info> .' . str_replace(getcwd(), '', realpath($configFilePath)));
-
-        $parser = $input->getOption('parser');
-
-        // If no parser is specified try to determine the correct one from the file extension.  Defaults to YAML
-        if ($parser === null) {
-            $extension = pathinfo($configFilePath, PATHINFO_EXTENSION);
-            $parser = 'php';
-        }
-
-        switch (strtolower($parser)) {
-            case 'php':
-                $config = Config::fromPhp($configFilePath);
-                break;
-            default:
-                throw new \InvalidArgumentException(sprintf('\'%s\' is not a valid parser.', $parser));
-        }
-
-        //$output->writeln('<info>using config parser</info> ' . $parser);
-
+        $cwd = getcwd();
+        $configFilePath = z::realPath($input->getOption('configuration'));
+        $config = Config::fromPhp($configFilePath);
         $this->setConfig($config);
     }
 

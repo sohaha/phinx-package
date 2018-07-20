@@ -1,45 +1,58 @@
 {
-    "name": "zls/phinx-package",
-    "type": "library",
-    "description": "Phinx makes it ridiculously easy to manage the database migrations for your PHP app.",
-    "keywords": ["phinx", "migrations", "database", "db", "database migrations"],
-    "homepage": "https://phinx.org",
-    "license": "MIT",
-    "version": "1.0.1",
-    "authors": [{
-        "name": "Rob Morgan",
-        "email": "robbym@gmail.com",
-        "homepage": "https://robmorgan.id.au",
-        "role": "Lead Developer"
-    }, {
-        "name": "Woody Gilk",
-        "email": "woody.gilk@gmail.com",
-        "homepage": "http://shadowhand.me",
-        "role": "Developer"
-    }, {
-        "name": "Richard Quadling",
-        "email": "rquadling@gmail.com",
-        "role": "Developer"
-    }, {
-        "name": "CakePHP Community",
-        "homepage": "https://github.com/cakephp/phinx/graphs/contributors"
-    }],
-    "require": {
-        "php": ">=5.6",
-        "cakephp/collection": "^3.6",
-        "symfony/console": "^2.8|^3.0|^4.0",
-        "symfony/config": "^2.8|^3.0|^4.0"
+  "name": "zls/phinx-package",
+  "type": "library",
+  "description": "Phinx makes it ridiculously easy to manage the database migrations for your PHP app. Phinx v.0.10.5",
+  "keywords": [
+    "phinx",
+    "migrations",
+    "database",
+    "db",
+    "database migrations"
+  ],
+  "homepage": "https://phinx.org",
+  "license": "MIT",
+  "version": "1.0.2",
+  "minimum-stability": "dev",
+  "authors": [
+    {
+      "name": "Rob Morgan",
+      "email": "robbym@gmail.com",
+      "homepage": "https://robmorgan.id.au",
+      "role": "Lead Developer"
     },
-    "require-dev": {
+    {
+      "name": "Woody Gilk",
+      "email": "woody.gilk@gmail.com",
+      "homepage": "http://shadowhand.me",
+      "role": "Developer"
     },
-    "autoload": {
-        "psr-4": {
-            "Phinx\\": "src/Phinx/"
-        }
+    {
+      "name": "Richard Quadling",
+      "email": "rquadling@gmail.com",
+      "role": "Developer"
     },
-    "autoload-dev": {
-    },
-    "scripts": {
-    },
-    "bin": ["bin/phinx"]
+    {
+      "name": "CakePHP Community",
+      "homepage": "https://github.com/cakephp/phinx/graphs/contributors"
+    }
+  ],
+  "require": {
+    "php": ">=5.6",
+    "cakephp/collection": "^3.6",
+    "symfony/console": "^2.8|^3.0|^4.0"
+  },
+  "require-dev": {
+  },
+  "autoload": {
+    "psr-4": {
+      "Phinx\\": "src/Phinx/"
+    }
+  },
+  "autoload-dev": {
+  },
+  "scripts": {
+  },
+  "bin": [
+    "bin/phinx"
+  ]
 }

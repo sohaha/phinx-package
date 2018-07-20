@@ -50,6 +50,7 @@ class Rollback extends AbstractCommand
             ->addOption('--force', '-f', InputOption::VALUE_NONE, 'Force rollback to ignore breakpoints')
             ->addOption('--dry-run', '-x', InputOption::VALUE_NONE, 'Dump query to standard output instead of executing it')
             ->addOption('--fake', null, InputOption::VALUE_NONE, "Mark any rollbacks selected as run, but don\'t actually execute them")
+            ->addOption('--sql', null, InputOption::VALUE_REQUIRED)
             ->setHelp(
                 <<<EOT
 The <info>rollback</info> command reverts the last migration, or optionally up to a specific version
