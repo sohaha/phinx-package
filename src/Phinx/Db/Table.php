@@ -243,8 +243,8 @@ class Table
      *
      * Valid options can be: limit, default, null, precision or scale.
      *
-     * @param string $columnName Column Name
-     * @param string $type Column Type
+     * @param string|\Phinx\Db\Table\Column $columnName Column Name
+     * @param string|\Phinx\Util\Literal $type Column Type
      * @param array $options Column Options
      * @throws \RuntimeException
      * @throws \InvalidArgumentException

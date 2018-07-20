@@ -42,7 +42,6 @@ use Phinx\Db\Table\Column;
 use Phinx\Db\Table\ForeignKey;
 use Phinx\Db\Table\Index;
 use Phinx\Db\Table\Table;
-use Z;
 
 /**
  * Table prefix/suffix adapter.
