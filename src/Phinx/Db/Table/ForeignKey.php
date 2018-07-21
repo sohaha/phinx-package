@@ -1,32 +1,4 @@
 <?php
-/**
- * Phinx
- *
- * (The MIT license)
- * Copyright (c) 2015 Rob Morgan
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated * documentation files (the "Software"), to
- * deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- *
- * @package    Phinx
- * @subpackage Phinx\Db
- * @author     Leonid Kuzmin <lndkuzmin@gmail.com>
- */
 
 namespace Phinx\Db\Table;
 
@@ -68,8 +40,16 @@ class ForeignKey
     protected $constraint;
 
     /**
+     * Gets the foreign key columns.
+     * @return array
+     */
+    public function getColumns()
+    {
+        return $this->columns;
+    }
+
+    /**
      * Sets the foreign key columns.
-     *
      * @param array|string $columns
      * @return \Phinx\Db\Table\ForeignKey
      */
@@ -81,18 +61,16 @@ class ForeignKey
     }
 
     /**
-     * Gets the foreign key columns.
-     *
-     * @return array
+     * Gets the foreign key referenced table.
+     * @return \Phinx\Db\Table\Table
      */
-    public function getColumns()
+    public function getReferencedTable()
     {
-        return $this->columns;
+        return $this->referencedTable;
     }
 
     /**
      * Sets the foreign key referenced table.
-     *
      * @param \Phinx\Db\Table\Table $table The table this KEY is pointing to
      * @return \Phinx\Db\Table\ForeignKey
      */
@@ -104,18 +82,16 @@ class ForeignKey
     }
 
     /**
-     * Gets the foreign key referenced table.
-     *
-     * @return \Phinx\Db\Table\Table
+     * Gets the foreign key referenced columns.
+     * @return array
      */
-    public function getReferencedTable()
+    public function getReferencedColumns()
     {
-        return $this->referencedTable;
+        return $this->referencedColumns;
     }
 
     /**
      * Sets the foreign key referenced columns.
-     *
      * @param array $referencedColumns
      * @return \Phinx\Db\Table\ForeignKey
      */
@@ -127,18 +103,16 @@ class ForeignKey
     }
 
     /**
-     * Gets the foreign key referenced columns.
-     *
-     * @return array
+     * Gets ON DELETE action for the foreign key.
+     * @return string
      */
-    public function getReferencedColumns()
+    public function getOnDelete()
     {
-        return $this->referencedColumns;
+        return $this->onDelete;
     }
 
     /**
      * Sets ON DELETE action for the foreign key.
-     *
      * @param string $onDelete
      * @return \Phinx\Db\Table\ForeignKey
      */
@@ -150,18 +124,7 @@ class ForeignKey
     }
 
     /**
-     * Gets ON DELETE action for the foreign key.
-     *
-     * @return string
-     */
-    public function getOnDelete()
-    {
-        return $this->onDelete;
-    }
-
-    /**
      * Gets ON UPDATE action for the foreign key.
-     *
      * @return string
      */
     public function getOnUpdate()
@@ -171,7 +134,6 @@ class ForeignKey
 
     /**
      * Sets ON UPDATE action for the foreign key.
-     *
      * @param string $onUpdate
      * @return \Phinx\Db\Table\ForeignKey
      */
@@ -183,8 +145,16 @@ class ForeignKey
     }
 
     /**
+     * Gets constraint name for the foreign key.
+     * @return string|bool
+     */
+    public function getConstraint()
+    {
+        return $this->constraint;
+    }
+
+    /**
      * Sets constraint for the foreign key.
-     *
      * @param string $constraint
      * @return \Phinx\Db\Table\ForeignKey
      */
@@ -196,18 +166,7 @@ class ForeignKey
     }
 
     /**
-     * Gets constraint name for the foreign key.
-     *
-     * @return string|bool
-     */
-    public function getConstraint()
-    {
-        return $this->constraint;
-    }
-
-    /**
      * Utility method that maps an array of index options to this objects methods.
-     *
      * @param array $options Options
      * @throws \RuntimeException
      * @throws \InvalidArgumentException
@@ -221,7 +180,6 @@ class ForeignKey
             if (!in_array($option, $validOptions, true)) {
                 throw new \RuntimeException(sprintf('"%s" is not a valid foreign key option.', $option));
             }
-
             // handle $options['delete'] as $options['update']
             if ('delete' === $option) {
                 $this->setOnDelete($value);
@@ -238,7 +196,6 @@ class ForeignKey
 
     /**
      * From passed value checks if it's correct and fixes if needed
-     *
      * @param string $action
      * @throws \InvalidArgumentException
      * @return string

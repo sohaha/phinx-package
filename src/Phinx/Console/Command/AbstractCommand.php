@@ -1,31 +1,5 @@
 <?php
-/**
- * Phinx
- *
- * (The MIT license)
- * Copyright (c) 2015 Rob Morgan
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated * documentation files (the "Software"), to
- * deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- *
- * @package    Phinx
- * @subpackage Phinx\Console
- */
+
 namespace Phinx\Console\Command;
 
 use Phinx\Config\Config;
@@ -41,7 +15,6 @@ use Z;
 
 /**
  * Abstract command, contains bootstrapping info
- *
  * @author Rob Morgan <robbym@gmail.com>
  */
 abstract class AbstractCommand extends Command
@@ -72,18 +45,8 @@ abstract class AbstractCommand extends Command
     protected $manager;
 
     /**
-     * {@inheritdoc}
-     */
-    protected function configure()
-    {
-        $this->addOption('--configuration', '-c', InputOption::VALUE_REQUIRED, 'The configuration file to load');
-        $this->addOption('--parser', '-p', InputOption::VALUE_REQUIRED, 'Parser used to read the config file. Defaults to YAML');
-    }
-
-    /**
      * Bootstrap Phinx.
-     *
-     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param \Symfony\Component\Console\Input\InputInterface   $input
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @return void
      */
@@ -92,23 +55,16 @@ abstract class AbstractCommand extends Command
         if (!$this->getConfig()) {
             $this->loadConfig($input, $output);
         }
-
         $this->loadManager($input, $output);
-
         // report the paths
         $paths = $this->getConfig()->getMigrationPaths();
-
         $output->writeln('<info>using migration paths</info> ');
-
         foreach (Util::globAll($paths) as $path) {
             $output->writeln('<info> - ' . realpath($path) . '</info>');
         }
-
         try {
             $paths = $this->getConfig()->getSeedPaths();
-
             $output->writeln('<info>using seed paths</info> ');
-
             foreach (Util::globAll($paths) as $path) {
                 $output->writeln('<info> - ' . realpath($path) . '</info>');
             }
@@ -118,8 +74,16 @@ abstract class AbstractCommand extends Command
     }
 
     /**
+     * Gets the config.
+     * @return \Phinx\Config\ConfigInterface
+     */
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
+    /**
      * Sets the config.
-     *
      * @param  \Phinx\Config\ConfigInterface $config
      * @return \Phinx\Console\Command\AbstractCommand
      */
@@ -131,66 +95,8 @@ abstract class AbstractCommand extends Command
     }
 
     /**
-     * Gets the config.
-     *
-     * @return \Phinx\Config\ConfigInterface
-     */
-    public function getConfig()
-    {
-        return $this->config;
-    }
-
-    /**
-     * Sets the database adapter.
-     *
-     * @param \Phinx\Db\Adapter\AdapterInterface $adapter
-     * @return \Phinx\Console\Command\AbstractCommand
-     */
-    public function setAdapter(AdapterInterface $adapter)
-    {
-        $this->adapter = $adapter;
-
-        return $this;
-    }
-
-    /**
-     * Gets the database adapter.
-     *
-     * @return \Phinx\Db\Adapter\AdapterInterface
-     */
-    public function getAdapter()
-    {
-        return $this->adapter;
-    }
-
-    /**
-     * Sets the migration manager.
-     *
-     * @param \Phinx\Migration\Manager $manager
-     * @return \Phinx\Console\Command\AbstractCommand
-     */
-    public function setManager(Manager $manager)
-    {
-        $this->manager = $manager;
-
-        return $this;
-    }
-
-    /**
-     * Gets the migration manager.
-     *
-     * @return \Phinx\Migration\Manager|null
-     */
-    public function getManager()
-    {
-        return $this->manager;
-    }
-
-
-    /**
      * Parse the config file and load it into the config object
-     *
-     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param \Symfony\Component\Console\Input\InputInterface   $input
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @throws \InvalidArgumentException
      * @return void
@@ -205,8 +111,7 @@ abstract class AbstractCommand extends Command
 
     /**
      * Load the migrations manager and inject the config
-     *
-     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param \Symfony\Component\Console\Input\InputInterface   $input
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      */
     protected function loadManager(InputInterface $input, OutputInterface $output)
@@ -222,8 +127,58 @@ abstract class AbstractCommand extends Command
     }
 
     /**
+     * Gets the migration manager.
+     * @return \Phinx\Migration\Manager|null
+     */
+    public function getManager()
+    {
+        return $this->manager;
+    }
+
+    /**
+     * Sets the migration manager.
+     * @param \Phinx\Migration\Manager $manager
+     * @return \Phinx\Console\Command\AbstractCommand
+     */
+    public function setManager(Manager $manager)
+    {
+        $this->manager = $manager;
+
+        return $this;
+    }
+
+    /**
+     * Gets the database adapter.
+     * @return \Phinx\Db\Adapter\AdapterInterface
+     */
+    public function getAdapter()
+    {
+        return $this->adapter;
+    }
+
+    /**
+     * Sets the database adapter.
+     * @param \Phinx\Db\Adapter\AdapterInterface $adapter
+     * @return \Phinx\Console\Command\AbstractCommand
+     */
+    public function setAdapter(AdapterInterface $adapter)
+    {
+        $this->adapter = $adapter;
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function configure()
+    {
+        $this->addOption('--configuration', '-c', InputOption::VALUE_REQUIRED, 'The configuration file to load');
+        $this->addOption('--parser', '-p', InputOption::VALUE_REQUIRED, 'Parser used to read the config file. Defaults to YAML');
+    }
+
+    /**
      * Verify that the migration directory exists and is writable.
-     *
      * @param string $path
      * @throws \InvalidArgumentException
      * @return void
@@ -236,7 +191,6 @@ abstract class AbstractCommand extends Command
                 $path
             ));
         }
-
         if (!is_writable($path)) {
             throw new \InvalidArgumentException(sprintf(
                 'Migration directory "%s" is not writable',
@@ -247,7 +201,6 @@ abstract class AbstractCommand extends Command
 
     /**
      * Verify that the seed directory exists and is writable.
-     *
      * @param string $path
      * @throws \InvalidArgumentException
      * @return void
@@ -260,7 +213,6 @@ abstract class AbstractCommand extends Command
                 $path
             ));
         }
-
         if (!is_writable($path)) {
             throw new \InvalidArgumentException(sprintf(
                 'Seed directory "%s" is not writable',
@@ -271,7 +223,6 @@ abstract class AbstractCommand extends Command
 
     /**
      * Returns the migration template filename.
-     *
      * @return string
      */
     protected function getMigrationTemplateFilename()
@@ -281,7 +232,6 @@ abstract class AbstractCommand extends Command
 
     /**
      * Returns the seed template filename.
-     *
      * @return string
      */
     protected function getSeedTemplateFilename()

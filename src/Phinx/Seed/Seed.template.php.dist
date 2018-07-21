@@ -1,8 +1,8 @@
 <?php
 $namespaceDefinition
-use Zls\Migration\AbstractSeed;
+use Zls\Migration\AbstractSeed as S;
 
-class $className extends AbstractSeed
+class $className extends S
 {
     /**
      * Run Method.

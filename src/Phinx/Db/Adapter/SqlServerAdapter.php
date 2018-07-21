@@ -1,26 +1,4 @@
 <?php
-/**
- * Phinx
- * (The MIT license)
- * Copyright (c) 2015 Rob Morgan
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated * documentation files (the "Software"), to
- * deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- * @package    Phinx
- * @subpackage Phinx\Db\Adapter
- */
 
 namespace Phinx\Db\Adapter;
 
@@ -30,7 +8,6 @@ use Phinx\Db\Table\Index;
 use Phinx\Db\Table\Table;
 use Phinx\Db\Util\AlterInstructions;
 use Phinx\Util\Literal;
-use Z;
 
 /**
  * Phinx SqlServer Adapter.
@@ -298,7 +275,6 @@ class SqlServerAdapter extends PdoAdapter implements AdapterInterface
             case static::PHINX_TYPE_DATETIME:
             case static::PHINX_TYPE_TIME:
             case static::PHINX_TYPE_DATE:
-            case static::PHINX_TYPE_TIMESTAMP:
                 return ['name' => $type];
             case static::PHINX_TYPE_STRING:
                 return ['name' => 'nvarchar', 'limit' => 255];
@@ -310,8 +286,8 @@ class SqlServerAdapter extends PdoAdapter implements AdapterInterface
                 return ['name' => 'int'];
             case static::PHINX_TYPE_BIG_INTEGER:
                 return ['name' => 'bigint'];
-            //case static::PHINX_TYPE_TIMESTAMP:
-            //    return ['name' => 'datetime'];
+            case static::PHINX_TYPE_TIMESTAMP:
+                return ['name' => 'datetime'];
             case static::PHINX_TYPE_BLOB:
             case static::PHINX_TYPE_BINARY:
                 return ['name' => 'varbinary'];
@@ -645,31 +621,18 @@ SQL;
     }
 
     /**
-     * 追加字段
      * {@inheritdoc}
      */
     protected function getAddColumnInstructions(Table $table, Column $column)
     {
-        $comment = $column->getComment();
-        $tableName = $table->getName();
-        $columnName = $column->getName();
         $alter = sprintf(
             'ALTER TABLE %s ADD %s %s',
-            $tableName,
-            $this->quoteColumnName($columnName),
+            $table->getName(),
+            $this->quoteColumnName($column->getName()),
             $this->getColumnSqlDefinition($column)
         );
 
-        return z::tap(new AlterInstructions([], [$alter]), function (AlterInstructions &$Alter) use ($comment, $tableName, $columnName) {
-            if ($comment) {
-                $Alter->addPostStep($this->getCommentSql($tableName, $columnName, $comment));
-            }
-        });
-    }
-
-    private function getCommentSql($tableName, $columnName, $comment)
-    {
-        return "IF ((SELECT COUNT(*) FROM ::fn_listextendedproperty('MS_Description','SCHEMA', N'dbo','TABLE', N'{$tableName}','COLUMN', N'{$columnName}')) > 0)  EXEC sp_updateextendedproperty'MS_Description', N'{$comment}','SCHEMA', N'dbo','TABLE', N'{$tableName}','COLUMN', N'{$columnName}'ELSE  EXEC sp_addextendedproperty'MS_Description', N'{$comment}','SCHEMA', N'dbo','TABLE', N'{$tableName}','COLUMN', N'{$columnName}'";
+        return new AlterInstructions([], [$alter]);
     }
 
     /**

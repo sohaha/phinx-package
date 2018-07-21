@@ -1,8 +1,8 @@
 <?php
 $namespaceDefinition
-use Zls\Migration\AbstractMigration;
+use Zls\Migration\AbstractMigration as M;
 
-class $className extends AbstractMigration
+class $className extends M
 {
     /**
      * Change Method.

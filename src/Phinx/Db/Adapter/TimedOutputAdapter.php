@@ -1,31 +1,5 @@
 <?php
-/**
- * Phinx
- *
- * (The MIT license)
- * Copyright (c) 2017 Cake Software Foundation
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated * documentation files (the "Software"), to
- * deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- *
- * @package    Phinx
- * @subpackage Phinx\Db\Adapter
- */
+
 namespace Phinx\Db\Adapter;
 
 use Phinx\Db\Table\Column;
@@ -49,8 +23,19 @@ class TimedOutputAdapter extends AdapterWrapper implements DirectActionInterface
     }
 
     /**
+     * {@inheritdoc}
+     * @return void
+     */
+    public function insert(Table $table, $row)
+    {
+        $end = $this->startCommandTimer();
+        $this->writeCommand('insert', [$table->getName()]);
+        parent::insert($table, $row);
+        $end();
+    }
+
+    /**
      * Start timing a command.
-     *
      * @return callable A function that is to be called when the command finishes
      */
     public function startCommandTimer()
@@ -67,7 +52,6 @@ class TimedOutputAdapter extends AdapterWrapper implements DirectActionInterface
 
     /**
      * Write a Phinx command to the output.
-     *
      * @param string $command Command Name
      * @param array  $args    Command Args
      * @return void
@@ -77,7 +61,6 @@ class TimedOutputAdapter extends AdapterWrapper implements DirectActionInterface
         if (OutputInterface::VERBOSITY_VERBOSE > $this->getOutput()->getVerbosity()) {
             return;
         }
-
         if (count($args)) {
             $outArr = [];
             foreach ($args as $arg) {
@@ -91,33 +74,17 @@ class TimedOutputAdapter extends AdapterWrapper implements DirectActionInterface
                     $outArr[] = '[' . implode(', ', $arg) . ']';
                     continue;
                 }
-
                 $outArr[] = '\'' . $arg . '\'';
             }
             $this->getOutput()->writeln(' -- ' . $command . '(' . implode(', ', $outArr) . ')');
 
             return;
         }
-
         $this->getOutput()->writeln(' -- ' . $command);
     }
 
     /**
      * {@inheritdoc}
-     *
-     * @return void
-     */
-    public function insert(Table $table, $row)
-    {
-        $end = $this->startCommandTimer();
-        $this->writeCommand('insert', [$table->getName()]);
-        parent::insert($table, $row);
-        $end();
-    }
-
-    /**
-     * {@inheritdoc}
-     *
      * @return void
      */
     public function bulkinsert(Table $table, $rows)
@@ -195,7 +162,7 @@ class TimedOutputAdapter extends AdapterWrapper implements DirectActionInterface
             [
                 $table->getName(),
                 $column->getName(),
-                $column->getType()
+                $column->getType(),
             ]
         );
         $adapter->addColumn($table, $column);
