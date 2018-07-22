@@ -4,55 +4,19 @@ namespace Phinx\Console\Command;
 
 use Phinx\Config\NamespaceAwareInterface;
 use Phinx\Util\Util;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Question\ChoiceQuestion;
-use Symfony\Component\Console\Question\ConfirmationQuestion;
+use Z;
+use Zls\Migration\Argv as InputInterface;
 
 class SeedCreate extends AbstractCommand
 {
-    /**
-     * {@inheritdoc}
-     */
-    protected function configure()
-    {
-        parent::configure();
-        $this->setName($this->getName() ?: 'seed:create')
-             ->setDescription('Create a new database seeder')
-             ->addArgument('name', InputArgument::REQUIRED, 'What is the name of the seeder?')
-             ->addOption('path', null, InputOption::VALUE_REQUIRED, 'Specify the path in which to create this seeder')
-             ->setHelp(sprintf(
-                 '%sCreates a new database seeder%s',
-                 PHP_EOL,
-                 PHP_EOL
-             ));
-    }
-
-    /**
-     * Create the new seeder.
-     * @param \Symfony\Component\Console\Input\InputInterface   $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     * @throws \RuntimeException
-     * @throws \InvalidArgumentException
-     * @return void
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    public function command(InputInterface $input, OutputInterface $output)
     {
         $this->bootstrap($input, $output);
         // get the seed path from the config
         $path = $this->getSeedPath($input, $output);
-        if (!file_exists($path)) {
-            $helper = $this->getHelper('question');
-            $question = $this->getCreateSeedDirectoryQuestion();
-            if ($helper->ask($input, $output, $question)) {
-                mkdir($path, 0755, true);
-            }
-        }
         $this->verifySeedDirectory($path);
         $path = realpath($path);
-        $className = $input->getArgument('name');
+        $className = z::strSnake2Camel(parent::$name, true);
         if (!Util::isValidPhinxClassName($className)) {
             throw new \InvalidArgumentException(sprintf(
                 'The seed class name "%s" is invalid. Please use CamelCase format',
@@ -85,65 +49,60 @@ class SeedCreate extends AbstractCommand
                 $path
             ));
         }
-        $output->writeln('<info>using seed base class</info> ' . $classes['$useClassName']);
-        $output->writeln('<info>created</info> .' . str_replace(getcwd(), '', $filePath));
+        $output->writeln($output->infoText('using seed base class ') . $classes['$useClassName']);
+        $output->writeln($output->infoText('created .') . str_replace(getcwd(), '', $filePath));
     }
 
-    /**
-     * Returns the seed path to create the seeder in.
-     * @param \Symfony\Component\Console\Input\InputInterface   $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     * @return mixed
-     * @throws \Exception
-     */
+
     protected function getSeedPath(InputInterface $input, OutputInterface $output)
     {
         // First, try the non-interactive option:
-        $path = $input->getOption('path');
+        $path = $input->get('-path');
         if (!empty($path)) {
             return $path;
         }
         $paths = $this->getConfig()->getSeedPaths();
         // No paths? That's a problem.
-        if (empty($paths)) {
-            throw new \Exception('No seed paths set in your Phinx configuration file.');
-        }
+        z::throwIf(empty($paths), 'Exception', 'No seed paths set in your configuration file.');
         $paths = Util::globAll($paths);
-        if (empty($paths)) {
-            throw new \Exception(
-                'You probably used curly braces to define seed path in your Phinx configuration file, ' .
-                'but no directories have been matched using this pattern. ' .
-                'You need to create a seed directory manually.'
-            );
-        }
+        z::throwIf(empty($paths), 'Exception',
+            'You probably used curly braces to define seed path in your Phinx configuration file, ' .
+            'but no directories have been matched using this pattern. ' .
+            'You need to create a seed directory manually.');
         // Only one path set, so select that:
         if (1 === count($paths)) {
             return array_shift($paths);
         }
-        // Ask the user which of their defined paths they'd like to use:
-        $helper = $this->getHelper('question');
-        $question = $this->getSelectSeedPathQuestion($paths);
+        $output->printStrN();
 
-        return $helper->ask($input, $output, $question);
+        return $this->getSelectSeedPathQuestion($paths, $output);
     }
 
-    /**
-     * Get the question that allows the user to select which seed path to use.
-     * @param string[] $paths
-     * @return \Symfony\Component\Console\Question\ChoiceQuestion
-     */
-    protected function getSelectSeedPathQuestion(array $paths)
+    protected function getSelectSeedPathQuestion(array $paths, OutputInterface $output)
     {
-        return new ChoiceQuestion('Which seeds path would you like to use?', $paths, 0);
+        $tip = 'Which seeds path would you like to use?' . Util::pathsToSelect($paths);
+        $value = 0;
+        $key = $output->ask($tip, $value, false);
+        $path = z::arrayGet($paths, $key);
+        if (!$path) {
+            $output->printStrN();
+            $output->printStrN($output->warningText('warning') . ' Illegal option');
+            $path = $this->getSelectSeedPathQuestion($paths, $output);
+        }
+
+        return $path;
     }
 
-    /**
-     * Get the confirmation question asking if the user wants to create the
-     * seeds directory.
-     * @return \Symfony\Component\Console\Question\ConfirmationQuestion
-     */
-    protected function getCreateSeedDirectoryQuestion()
+    public function description()
     {
-        return new ConfirmationQuestion('Create seeds directory? [y]/n ', true);
+        return 'Create a new database seeder';
     }
+
+    public function options()
+    {
+        return [
+            '--name' => 'The seed class name',
+        ];
+    }
+
 }

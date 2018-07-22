@@ -38,7 +38,7 @@
   ],
   "require": {
     "php": ">=5.6",
-    "symfony/console": "^2.8|^3.0|^4.0"
+    "zls/command": ">=1.0.0"
   },
   "require-dev": {
   },

@@ -2,12 +2,11 @@
 
 namespace Phinx\Db\Adapter;
 
+use Phinx\Console\Command\OutputInterface;
 use Phinx\Db\Table;
 use Phinx\Db\Table\Column;
 use Phinx\Util\Literal;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\NullOutput;
-use Symfony\Component\Console\Output\OutputInterface;
+use Zls\Migration\Argv as InputInterface;
 
 /**
  * Base Abstract Database Adapter.
@@ -20,12 +19,12 @@ abstract class AbstractAdapter implements AdapterInterface
     protected $options = [];
 
     /**
-     * @var \Symfony\Component\Console\Input\InputInterface
+     * @var \Zls_CliArgs
      */
     protected $input;
 
     /**
-     * @var \Symfony\Component\Console\Output\OutputInterface
+     * @var Phinx\Console\Command\OutputInterface
      */
     protected $output;
 
@@ -36,9 +35,6 @@ abstract class AbstractAdapter implements AdapterInterface
 
     /**
      * Class Constructor.
-     * @param array                                             $options Options
-     * @param \Symfony\Component\Console\Input\InputInterface   $input   Input Interface
-     * @param \Symfony\Component\Console\Output\OutputInterface $output  Output Interface
      */
     public function __construct(array $options, InputInterface $input = null, OutputInterface $output = null)
     {
@@ -78,7 +74,7 @@ abstract class AbstractAdapter implements AdapterInterface
     public function getOutput()
     {
         if ($this->output === null) {
-            $output = new NullOutput();
+            $output = new OutputInterface();
             $this->setOutput($output);
         }
 
@@ -205,7 +201,7 @@ abstract class AbstractAdapter implements AdapterInterface
     {
         $input = $this->getInput();
 
-        return ($input && $input->hasOption('dry-run')) ? $input->getOption('dry-run') : false;
+        return ($input && $input->get('dry-run')) ? $input->get('dry-run') : false;
     }
 
     /**

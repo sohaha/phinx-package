@@ -2,14 +2,10 @@
 
 namespace Phinx\Migration;
 
+use Phinx\Console\Command\OutputInterface;
 use Phinx\Db\Adapter\AdapterInterface;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Zls\Migration\Argv as InputInterface;
 
-/**
- * Migration interface
- * @author Rob Morgan <robbym@gmail.com>
- */
 interface MigrationInterface
 {
     /**
@@ -42,27 +38,27 @@ interface MigrationInterface
 
     /**
      * Sets the input object to be used in migration object
-     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param InputInterface $input
      * @return \Phinx\Migration\MigrationInterface
      */
     public function setInput(InputInterface $input);
 
     /**
      * Gets the input object to be used in migration object
-     * @return \Symfony\Component\Console\Input\InputInterface
+     * @return InputInterface
      */
     public function getInput();
 
     /**
      * Sets the output object to be used in migration object
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param OutputInterface $output
      * @return \Phinx\Migration\MigrationInterface
      */
     public function setOutput(OutputInterface $output);
 
     /**
      * Gets the output object to be used in migration object
-     * @return \Symfony\Component\Console\Output\OutputInterface
+     * @return OutputInterface
      */
     public function getOutput();
 

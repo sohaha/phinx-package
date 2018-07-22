@@ -2,11 +2,11 @@
 
 namespace Phinx\Db\Adapter;
 
+use Phinx\Console\Command\OutputInterface;
 use Phinx\Db\Table\Column;
 use Phinx\Db\Table\Table;
 use Phinx\Migration\MigrationInterface;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Zls\Migration\Argv as InputInterface;
 
 /**
  * Adapter Interface.
@@ -95,27 +95,27 @@ interface AdapterInterface
 
     /**
      * Sets the console input.
-     * @param \Symfony\Component\Console\Input\InputInterface $input Input
+     * @param InputInterface $input Input
      * @return \Phinx\Db\Adapter\AdapterInterface
      */
     public function setInput(InputInterface $input);
 
     /**
      * Gets the console input.
-     * @return \Symfony\Component\Console\Input\InputInterface
+     * @return InputInterface;
      */
     public function getInput();
 
     /**
      * Sets the console output.
-     * @param \Symfony\Component\Console\Output\OutputInterface $output Output
+     * @param \Phinx\Console\Command\OutputInterface
      * @return \Phinx\Db\Adapter\AdapterInterface
      */
     public function setOutput(OutputInterface $output);
 
     /**
      * Gets the console output.
-     * @return \Symfony\Component\Console\Output\OutputInterface
+     * @return \Phinx\Console\Command\OutputInterface
      */
     public function getOutput();
 

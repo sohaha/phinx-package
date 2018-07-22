@@ -2,11 +2,11 @@
 
 namespace Phinx\Db\Adapter;
 
+use Phinx\Console\Command\OutputInterface;
 use Phinx\Db\Table\Column;
 use Phinx\Db\Table\Table;
 use Phinx\Migration\MigrationInterface;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Zls\Migration\Argv as InputInterface;
 
 /**
  * Adapter Wrapper.

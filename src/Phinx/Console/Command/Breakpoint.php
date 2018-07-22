@@ -2,53 +2,27 @@
 
 namespace Phinx\Console\Command;
 
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
+use Zls\Migration\Argv as InputInterface;
 
 class Breakpoint extends AbstractCommand
 {
     /**
-     * {@inheritdoc}
-     */
-    protected function configure()
-    {
-        parent::configure();
-        $this->addOption('--environment', '-e', InputOption::VALUE_REQUIRED, 'The target environment.');
-        $this->setName($this->getName() ?: 'breakpoint')
-             ->setDescription('Manage breakpoints')
-             ->addOption('--target', '-t', InputOption::VALUE_REQUIRED, 'The version number to set or clear a breakpoint against')
-             ->addOption('--remove-all', '-r', InputOption::VALUE_NONE, 'Remove all breakpoints')
-             ->setHelp(
-                 <<<EOT
-The <info>breakpoint</info> command allows you to set or clear a breakpoint against a specific target to inhibit rollbacks beyond a certain target.
-If no target is supplied then the most recent migration will be used.
-You cannot specify un-migrated targets
-
-<info>phinx breakpoint -e development</info>
-<info>phinx breakpoint -e development -t 20110103081132</info>
-<info>phinx breakpoint -e development -r</info>
-EOT
-             );
-    }
-
-    /**
      * Toggle the breakpoint.
-     * @param \Symfony\Component\Console\Input\InputInterface   $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param InputInterface  $input
+     * @param OutputInterface $output
      * @return void
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    public function command(InputInterface $input, OutputInterface $output)
     {
         $this->bootstrap($input, $output);
-        $environment = $input->getOption('environment');
-        $version = $input->getOption('target');
-        $removeAll = $input->getOption('remove-all');
+        $environment = parent::$environment;
+        $version = parent::$target;
+        $removeAll = $input->get(['-remove-all', 'r']);
         if ($environment === null) {
             $environment = $this->getConfig()->getDefaultEnvironment();
-            $output->writeln('<comment>warning</comment> no environment specified, defaulting to: ' . $environment);
+            $output->writeln($output->warningText('warning') . ' no environment specified, defaulting to: ' . $environment);
         } else {
-            $output->writeln('<info>using environment</info> ' . $environment);
+            $output->writeln($output->infoText('using environment ' . $environment));
         }
         if ($version && $removeAll) {
             throw new \InvalidArgumentException('Cannot toggle a breakpoint and remove all breakpoints at the same time.');
@@ -60,5 +34,18 @@ EOT
             // Toggle the breakpoint.
             $this->getManager()->toggleBreakpoint($environment, $version);
         }
+    }
+
+    public function description()
+    {
+        return 'Manage breakpoints';
+    }
+
+    public function options()
+    {
+        return [
+            '-t, --target'     => 'The version number to set or clear a breakpoint against',
+            '    --remove-all' => 'Remove all breakpoints',
+        ];
     }
 }

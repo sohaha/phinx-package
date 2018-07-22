@@ -2,18 +2,11 @@
 
 namespace Phinx\Migration;
 
+use Phinx\Console\Command\OutputInterface;
 use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Db\Table;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Zls\Migration\Argv as InputInterface;
 
-/**
- * Abstract Migration Class.
- * It is expected that the migrations you write extend from this class.
- * This abstract class proxies the various database methods to your specified
- * adapter.
- * @author Rob Morgan <robbym@gmail.com>
- */
 abstract class AbstractMigration implements MigrationInterface
 {
     /**
@@ -48,10 +41,10 @@ abstract class AbstractMigration implements MigrationInterface
 
     /**
      * Class Constructor.
-     * @param string                                                 $environment Environment Detected
-     * @param int                                                    $version     Migration Version
-     * @param \Symfony\Component\Console\Input\InputInterface|null   $input
-     * @param \Symfony\Component\Console\Output\OutputInterface|null $output
+     * @param string          $environment Environment Detected
+     * @param int             $version     Migration Version
+     * @param InputInterface  $input
+     * @param OutputInterface $output
      */
     final public function __construct($environment, $version, InputInterface $input = null, OutputInterface $output = null)
     {

@@ -4,12 +4,8 @@ namespace Phinx\Console\Command;
 
 use Phinx\Config\NamespaceAwareInterface;
 use Phinx\Util\Util;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Question\ChoiceQuestion;
-use Symfony\Component\Console\Question\ConfirmationQuestion;
+use Z;
+use Zls\Migration\Argv as InputInterface;
 
 class Create extends AbstractCommand
 {
@@ -18,54 +14,15 @@ class Create extends AbstractCommand
      */
     const CREATION_INTERFACE = 'Phinx\Migration\CreationInterface';
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function configure()
-    {
-        parent::configure();
-        $this->setName($this->getName() ?: 'create')
-             ->setDescription('Create a new migration')
-             ->addArgument('name', InputArgument::REQUIRED, 'What is the name of the migration (in CamelCase)?')
-             ->setHelp(sprintf(
-                 '%sCreates a new database migration%s',
-                 PHP_EOL,
-                 PHP_EOL
-             ));
-        // An alternative template.
-        $this->addOption('template', 't', InputOption::VALUE_REQUIRED, 'Use an alternative template');
-        // A classname to be used to gain access to the template content as well as the ability to
-        // have a callback once the migration file has been created.
-        $this->addOption('class', 'l', InputOption::VALUE_REQUIRED, 'Use a class implementing "' . self::CREATION_INTERFACE . '" to generate the template');
-        // Allow the migration path to be chosen non-interactively.
-        $this->addOption('path', null, InputOption::VALUE_REQUIRED, 'Specify the path in which to create this migration');
-    }
-
-    /**
-     * Create the new migration.
-     * @param \Symfony\Component\Console\Input\InputInterface   $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     * @throws \RuntimeException
-     * @throws \InvalidArgumentException
-     * @return void
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    public function command(InputInterface $input, OutputInterface $output)
     {
         $this->bootstrap($input, $output);
-        // get the migration path from the config
         $path = $this->getMigrationPath($input, $output);
-        if (!file_exists($path)) {
-            $helper = $this->getHelper('question');
-            $question = $this->getCreateMigrationDirectoryQuestion();
-            if ($helper->ask($input, $output, $question)) {
-                mkdir($path, 0755, true);
-            }
-        }
         $this->verifyMigrationDirectory($path);
         $config = $this->getConfig();
         $namespace = $config instanceof NamespaceAwareInterface ? $config->getMigrationNamespaceByPath($path) : null;
         $path = realpath($path);
-        $className = $input->getArgument('name');
+        $className = z::strSnake2Camel(parent::$name, true);
         if (!Util::isValidPhinxClassName($className)) {
             throw new \InvalidArgumentException(sprintf(
                 'The migration class name "%s" is invalid. Please use CamelCase format.',
@@ -95,8 +52,8 @@ class Create extends AbstractCommand
             throw new \InvalidArgumentException('Cannot define template:class and template:file at the same time');
         }
         // Get the alternative template and static class options from the command line, but only allow one of them.
-        $altTemplate = $input->getOption('template');
-        $creationClassName = $input->getOption('class');
+        $altTemplate = $input->get('-template');
+        $creationClassName = $input->get('-class');
         if ($altTemplate && $creationClassName) {
             throw new \InvalidArgumentException('Cannot use --template and --class at the same time');
         }
@@ -178,72 +135,73 @@ class Create extends AbstractCommand
         if (isset($creationClass)) {
             $creationClass->postMigrationCreation($filePath, $className, $this->getConfig()->getMigrationBaseClassName());
         }
-        $output->writeln('<info>using migration base class</info> ' . $classes['$useClassName']);
+        $output->writeln($output->infoText('using migration base class ') . $classes['$useClassName']);
         if (!empty($altTemplate)) {
-            $output->writeln('<info>using alternative template</info> ' . $altTemplate);
+            $output->writeln($output->infoText('using alternative template ') . $altTemplate);
         } elseif (!empty($creationClassName)) {
-            $output->writeln('<info>using template creation class</info> ' . $creationClassName);
+            $output->writeln($output->infoText('using template creation class ') . $creationClassName);
         } else {
-            $output->writeln('<info>using default template</info>');
+            $output->writeln($output->infoText('using default template '));
         }
-        $output->writeln('<info>created</info> ' . str_replace(getcwd() . DIRECTORY_SEPARATOR, '', $filePath));
+        $output->writeln($output->infoText('created ') . str_replace(getcwd() . DIRECTORY_SEPARATOR, '', $filePath));
     }
 
     /**
      * Returns the migration path to create the migration in.
-     * @param \Symfony\Component\Console\Input\InputInterface   $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param InputInterface  $input
+     * @param OutputInterface $output
      * @return mixed
-     * @throws \Exception
      */
     protected function getMigrationPath(InputInterface $input, OutputInterface $output)
     {
         // First, try the non-interactive option:
-        $path = $input->getOption('path');
+        $path = $input->get('path');
         if (!empty($path)) {
             return $path;
         }
         $paths = $this->getConfig()->getMigrationPaths();
         // No paths? That's a problem.
-        if (empty($paths)) {
-            throw new \Exception('No migration paths set in your Phinx configuration file.');
-        }
+        z::throwIf(empty($paths), 'Exception', 'No migration paths set in your Phinx configuration file.');
         $paths = Util::globAll($paths);
-        if (empty($paths)) {
-            throw new \Exception(
-                'You probably used curly braces to define migration path in your Phinx configuration file, ' .
-                'but no directories have been matched using this pattern. ' .
-                'You need to create a migration directory manually.'
-            );
-        }
+        z::throwIf(empty($paths), 'Exception',
+            'You probably used curly braces to define migration path in your Phinx configuration file, ' .
+            'but no directories have been matched using this pattern. ' .
+            'You need to create a migration directory manually.');
         // Only one path set, so select that:
         if (1 === count($paths)) {
             return array_shift($paths);
         }
-        // Ask the user which of their defined paths they'd like to use:
-        $helper = $this->getHelper('question');
-        $question = $this->getSelectMigrationPathQuestion($paths);
 
-        return $helper->ask($input, $output, $question);
+        return $this->getSelectMigrationPathQuestion($paths, $output);
     }
 
-    /**
-     * Get the question that allows the user to select which migration path to use.
-     * @param string[] $paths
-     * @return \Symfony\Component\Console\Question\ChoiceQuestion
-     */
-    protected function getSelectMigrationPathQuestion(array $paths)
+
+    protected function getSelectMigrationPathQuestion(array $paths, OutputInterface $output)
     {
-        return new ChoiceQuestion('Which migrations path would you like to use?', $paths, 0);
+        $tip = 'Which migrations path would you like to use?' . Util::pathsToSelect($paths);
+        $value = 0;
+        $key = $output->ask($tip, $value, false);
+        $path = z::arrayGet($paths, $key);
+        if (!$path) {
+            $output->printStrN();
+            $output->printStrN($output->warningText('warning') . ' Illegal option');
+            $path = $this->getSelectMigrationPathQuestion($paths, $output);
+        }
+
+        return $path;
     }
 
-    /**
-     * Get the confirmation question asking if the user wants to create the
-     * migrations directory.
-     * @return \Symfony\Component\Console\Question\ConfirmationQuestion
-     */
-    protected function getCreateMigrationDirectoryQuestion()
+    public function description()
     {
-        return new ConfirmationQuestion('Create migrations directory? [y]/n ', true);
+        return 'Create a new migration';
     }
+
+    public function options()
+    {
+
+        return [
+            '--name' => 'The migration class name',
+        ];
+    }
+
 }

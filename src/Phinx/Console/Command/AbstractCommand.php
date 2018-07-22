@@ -7,66 +7,95 @@ use Phinx\Config\ConfigInterface;
 use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Migration\Manager;
 use Phinx\Util\Util;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
 use Z;
+use Zls\Command\Command;
+use Zls\Migration\Argv as InputInterface;
 
-/**
- * Abstract command, contains bootstrapping info
- * @author Rob Morgan <robbym@gmail.com>
- */
-abstract class AbstractCommand extends Command
+//use Symfony\Component\Console\Command\Command;
+//use Symfony\Component\Console\Input\InputInterface;
+//use Symfony\Component\Console\Input\InputOption;
+//use Symfony\Component\Console\Output\OutputInterface;
+
+
+class AbstractCommand extends Command
 {
     /**
      * The location of the default migration template.
      */
     const DEFAULT_MIGRATION_TEMPLATE = '/../../Migration/Migration.template.php.dist';
-
     /**
      * The location of the default seed template.
      */
     const DEFAULT_SEED_TEMPLATE = '/../../Seed/Seed.template.php.dist';
-
+    const CONFIGURATION_PATH = '/vendor/zls/migration/src/phinx.php';
+    protected static $environment;
+    protected static $target;
+    protected static $fake;
+    protected static $date;
+    protected static $force;
+    protected static $configuration;
+    protected static $name;
     /**
      * @var \Phinx\Config\ConfigInterface
      */
     protected $config;
-
     /**
      * @var \Phinx\Db\Adapter\AdapterInterface
      */
     protected $adapter;
-
     /**
      * @var \Phinx\Migration\Manager
      */
     protected $manager;
 
+    public function __construct()
+    {
+        parent::__construct();
+        $input = new InputInterface();
+        self::$environment = $input->get(['-environment', 'e'], 'production');
+        self::$target = $input->get(['-target', 't']);
+        self::$date = $input->get(['-date', 'date']);
+        self::$fake = (bool)$input->get(['-fake']);
+        self::$force = (bool)$input->get(['-force']);
+        self::$name = '';
+        foreach ($input->get() as $k => $v) {
+            if (!is_numeric($k) || $k <= 2) {
+                continue;
+            }
+            self::$name = $v;
+            break;
+        }
+        $cwd = getcwd();
+        self::$configuration = $input->get(['-configuration'], $cwd . self::CONFIGURATION_PATH);
+    }
+
+
     /**
      * Bootstrap Phinx.
-     * @param \Symfony\Component\Console\Input\InputInterface   $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param   InputInterface $input
+     * @param string           $output
      * @return void
      */
-    public function bootstrap(InputInterface $input, OutputInterface $output)
+    public function bootstrap(InputInterface $input, $output = '')
     {
+        if (!$output) {
+            $output = new OutputInterface();
+        }
         if (!$this->getConfig()) {
             $this->loadConfig($input, $output);
         }
         $this->loadManager($input, $output);
         // report the paths
         $paths = $this->getConfig()->getMigrationPaths();
-        $output->writeln('<info>using migration paths</info> ');
+        $output->writeln($output->infoText('using migration paths'));
         foreach (Util::globAll($paths) as $path) {
-            $output->writeln('<info> - ' . realpath($path) . '</info>');
+            $output->writeln($output->infoText(' - ' . realpath($path)));
         }
         try {
             $paths = $this->getConfig()->getSeedPaths();
-            $output->writeln('<info>using seed paths</info> ');
+            $output->writeln($output->infoText('using seed paths '));
             foreach (Util::globAll($paths) as $path) {
-                $output->writeln('<info> - ' . realpath($path) . '</info>');
+                $output->writeln($output->infoText(' - ' . realpath($path)));
             }
         } catch (\UnexpectedValueException $e) {
             // do nothing as seeds are optional
@@ -96,23 +125,21 @@ abstract class AbstractCommand extends Command
 
     /**
      * Parse the config file and load it into the config object
-     * @param \Symfony\Component\Console\Input\InputInterface   $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     * @throws \InvalidArgumentException
+     * @param InputInterface  $input
+     * @param OutputInterface $output
      * @return void
      */
     protected function loadConfig(InputInterface $input, OutputInterface $output)
     {
-        $cwd = getcwd();
-        $configFilePath = z::realPath($input->getOption('configuration'));
+        $configFilePath = z::realPath(self::$configuration);
         $config = Config::fromPhp($configFilePath);
         $this->setConfig($config);
     }
 
     /**
      * Load the migrations manager and inject the config
-     * @param \Symfony\Component\Console\Input\InputInterface   $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param InputInterface  $input
+     * @param OutputInterface $output
      */
     protected function loadManager(InputInterface $input, OutputInterface $output)
     {
@@ -173,8 +200,8 @@ abstract class AbstractCommand extends Command
      */
     protected function configure()
     {
-        $this->addOption('--configuration', '-c', InputOption::VALUE_REQUIRED, 'The configuration file to load');
-        $this->addOption('--parser', '-p', InputOption::VALUE_REQUIRED, 'Parser used to read the config file. Defaults to YAML');
+        //$this->addOption('--configuration', '-c', InputOption::VALUE_REQUIRED, 'The configuration file to load');
+        //$this->addOption('--parser', '-p', InputOption::VALUE_REQUIRED, 'Parser used to read the config file. Defaults to YAML');
     }
 
     /**
@@ -237,5 +264,23 @@ abstract class AbstractCommand extends Command
     protected function getSeedTemplateFilename()
     {
         return __DIR__ . self::DEFAULT_SEED_TEMPLATE;
+    }
+
+
+    public function options()
+    {
+
+    }
+
+
+    public function description()
+    {
+
+    }
+
+
+    public function execute($args)
+    {
+
     }
 }

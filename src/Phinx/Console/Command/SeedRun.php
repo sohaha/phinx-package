@@ -2,47 +2,20 @@
 
 namespace Phinx\Console\Command;
 
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
+use Zls\Migration\Argv as InputInterface;
 
+/**
+ * Run database seeders
+ * @package Phinx\Console\Command
+ */
 class SeedRun extends AbstractCommand
 {
-    /**
-     * {@inheritdoc}
-     */
-    protected function configure()
-    {
-        parent::configure();
-        $this->addOption('--environment', '-e', InputOption::VALUE_REQUIRED, 'The target environment');
-        $this->setName($this->getName() ?: 'seed:run')
-             ->setDescription('Run database seeders')
-             ->addOption('--seed', '-s', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'What is the name of the seeder?')
-             ->addOption('--sql', null, InputOption::VALUE_REQUIRED)
-             ->setHelp(
-                 <<<EOT
-The <info>seed:run</info> command runs all available or individual seeders
 
-<info>phinx seed:run -e development</info>
-<info>phinx seed:run -e development -s UserSeeder</info>
-<info>phinx seed:run -e development -s UserSeeder -s PermissionSeeder -s LogSeeder</info>
-<info>phinx seed:run -e development -v</info>
-
-EOT
-             );
-    }
-
-    /**
-     * Run database seeders.
-     * @param \Symfony\Component\Console\Input\InputInterface   $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     * @return void
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    public function command(InputInterface $input, OutputInterface $output)
     {
         $this->bootstrap($input, $output);
-        $seedSet = $input->getOption('seed');
-        $environment = $input->getOption('environment');
+        $seedSet = $input->get(['seed']);
+        $environment = parent::$environment;
         if ($environment === null) {
             $environment = $this->getConfig()->getDefaultEnvironment();
             $output->writeln('<comment>warning</comment> no environment specified, defaulting to: ' . $environment);
@@ -82,5 +55,17 @@ EOT
         $end = microtime(true);
         $output->writeln('');
         $output->writeln('<comment>All Done. Took ' . sprintf('%.4fs', $end - $start) . '</comment>');
+    }
+
+    public function description()
+    {
+        return 'Run database seeders';
+    }
+
+    public function options()
+    {
+        return [
+            '--seed, -s' => 'What is the name of the seeder?',
+        ];
     }
 }

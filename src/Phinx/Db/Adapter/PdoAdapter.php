@@ -19,7 +19,7 @@ use Phinx\Db\Table\Index;
 use Phinx\Db\Table\Table;
 use Phinx\Db\Util\AlterInstructions;
 use Phinx\Migration\MigrationInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Phinx\Console\Command\OutputInterface;
 use Z;
 
 /**

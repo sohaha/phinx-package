@@ -219,4 +219,15 @@ class Util
 
         return reset($arr);
     }
+
+    public static function pathsToSelect($paths)
+    {
+        $tip = PHP_EOL;
+        foreach ($paths as $key => $path) {
+            $path = z::safePath($path,'',getcwd());
+            $tip .= "  [{$key}] {$path}\n";
+        }
+        $tip .= "  >  ";
+        return $tip;
+    }
 }

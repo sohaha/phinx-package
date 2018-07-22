@@ -2,12 +2,12 @@
 
 namespace Phinx\Migration\Manager;
 
+use Phinx\Console\Command\OutputInterface;
 use Phinx\Db\Adapter\AdapterFactory;
 use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Migration\MigrationInterface;
 use Phinx\Seed\SeedInterface;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Zls\Migration\Argv as InputInterface;
 
 class Environment
 {
@@ -22,12 +22,12 @@ class Environment
     protected $options;
 
     /**
-     * @var \Symfony\Component\Console\Input\InputInterface
+     * @var InputInterface
      */
     protected $input;
 
     /**
-     * @var \Symfony\Component\Console\Output\OutputInterface
+     * @var OutputInterface
      */
     protected $output;
 
@@ -39,7 +39,7 @@ class Environment
     /**
      * @var string
      */
-    protected $schemaTableName = 'phinxlog';
+    protected $schemaTableName = 'migration_log';
 
     /**
      * @var \Phinx\Db\Adapter\AdapterInterface
@@ -183,7 +183,7 @@ class Environment
 
     /**
      * Gets the console input.
-     * @return \Symfony\Component\Console\Input\InputInterface
+     * @return InputInterface
      */
     public function getInput()
     {
@@ -192,8 +192,8 @@ class Environment
 
     /**
      * Sets the console input.
-     * @param \Symfony\Component\Console\Input\InputInterface $input
-     * @return \Phinx\Migration\Manager\Environment
+     * @param InputInterface $input
+     * @return $this
      */
     public function setInput(InputInterface $input)
     {
@@ -204,7 +204,7 @@ class Environment
 
     /**
      * Gets the console output.
-     * @return \Symfony\Component\Console\Output\OutputInterface
+     * @return OutputInterface
      */
     public function getOutput()
     {
@@ -213,7 +213,7 @@ class Environment
 
     /**
      * Sets the console output.
-     * @param \Symfony\Component\Console\Output\OutputInterface $output Output
+     * @param OutputInterface $output Output
      * @return \Phinx\Migration\Manager\Environment
      */
     public function setOutput(OutputInterface $output)

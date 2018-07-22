@@ -2,11 +2,11 @@
 
 namespace Phinx\Db\Adapter;
 
+use Phinx\Console\Command\OutputInterface;
 use Phinx\Db\Table\Column;
 use Phinx\Db\Table\ForeignKey;
 use Phinx\Db\Table\Index;
 use Phinx\Db\Table\Table;
-use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Wraps any adapter to record the time spend executing its commands

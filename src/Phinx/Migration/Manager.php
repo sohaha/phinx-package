@@ -5,12 +5,13 @@ namespace Phinx\Migration;
 use Phinx\Config\Config;
 use Phinx\Config\ConfigInterface;
 use Phinx\Config\NamespaceAwareInterface;
+use Phinx\Console\Command\OutputInterface;
 use Phinx\Migration\Manager\Environment;
 use Phinx\Seed\AbstractSeed;
 use Phinx\Seed\SeedInterface;
 use Phinx\Util\Util;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+
+use Zls\Migration\Argv as InputInterface;
 
 class Manager
 {
@@ -27,11 +28,11 @@ class Manager
      */
     protected $config;
     /**
-     * @var \Symfony\Component\Console\Input\InputInterface
+     * @var \InputInterface
      */
     protected $input;
     /**
-     * @var \Symfony\Component\Console\Output\OutputInterface
+     * @var \Phinx\Console\Command\OutputInterface
      */
     protected $output;
     /**
@@ -49,9 +50,9 @@ class Manager
 
     /**
      * Class Constructor.
-     * @param \Phinx\Config\ConfigInterface                     $config Configuration Object
-     * @param \Symfony\Component\Console\Input\InputInterface   $input  Console Input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output Console Output
+     * @param \Phinx\Config\ConfigInterface $config Configuration Object
+     * @param InputInterface                   $input  Console Input
+     * @param OutputInterface               $output Console Output
      */
     public function __construct(ConfigInterface $config, InputInterface $input, OutputInterface $output)
     {
@@ -81,10 +82,10 @@ class Manager
             $output->writeln('');
             switch ($this->getConfig()->getVersionOrder()) {
                 case Config::VERSION_ORDER_CREATION_TIME:
-                    $migrationIdAndStartedHeader = "<info>[Migration ID]</info>  Started            ";
+                    $migrationIdAndStartedHeader = $this->getOutput()->infoText("[Migration ID]") . "  Started            ";
                     break;
                 case Config::VERSION_ORDER_EXECUTION_TIME:
-                    $migrationIdAndStartedHeader = "Migration ID    <info>[Started          ]</info>";
+                    $migrationIdAndStartedHeader = "Migration ID    " . $this->getOutput()->infoText("[Started          ]");
                     break;
                 default:
                     throw new \RuntimeException('Invalid version_order configuration option');
@@ -141,15 +142,15 @@ class Manager
                         $this->printMissingVersion($missingVersion, $maxNameLength);
                         unset($missingVersions[$missingVersionCreationTime]);
                     }
-                    $status = '     <info>up</info> ';
+                    $status = $this->getOutput()->infoText('     up ');
                 } else {
                     $pendingMigrationCount++;
                     $hasDownMigration = true;
-                    $status = '   <error>down</error> ';
+                    $status = $this->getOutput()->errorText('   down ');
                 }
                 $maxNameLength = max($maxNameLength, strlen($migration->getName()));
                 $output->writeln(sprintf(
-                    '%s %14.0f  %19s  %19s  <comment>%s</comment>',
+                    '%s %14.0f  %19s  %19s  ' . $this->getOutput()->tipText('%s'),
                     $status,
                     $migration->getVersion(),
                     $version['start_time'],
@@ -170,7 +171,7 @@ class Manager
         } else {
             // there are no migrations
             $output->writeln('');
-            $output->writeln('There are no available migrations. Try creating one using the <info>create</info> command.');
+            $output->writeln('There are no available migrations. Try creating one using the ' . $output->infoText('create') . ' command.');
         }
         // write an empty line
         $output->writeln('');
@@ -187,7 +188,7 @@ class Manager
                     ));
                     break;
                 default:
-                    $output->writeln('<info>Unsupported format: ' . $format . '</info>');
+                    $output->writeln($output->infoText('Unsupported format: ' . $format));
             }
         }
         if ($hasMissingMigration) {
@@ -201,7 +202,7 @@ class Manager
 
     /**
      * Gets the console output.
-     * @return \Symfony\Component\Console\Output\OutputInterface
+     * @return OutputInterface
      */
     public function getOutput()
     {
@@ -210,7 +211,7 @@ class Manager
 
     /**
      * Sets the console output.
-     * @param \Symfony\Component\Console\Output\OutputInterface $output Output
+     * @param \Phinx\Console\Command\OutputInterface $output Output
      * @return \Phinx\Migration\Manager
      */
     public function setOutput(OutputInterface $output)
@@ -384,7 +385,7 @@ class Manager
 
     /**
      * Gets the console input.
-     * @return \Symfony\Component\Console\Input\InputInterface
+     * @return \InputInterface
      */
     public function getInput()
     {
@@ -393,7 +394,7 @@ class Manager
 
     /**
      * Sets the console input.
-     * @param \Symfony\Component\Console\Input\InputInterface $input Input
+     * @param InputInterface $input Input
      * @return \Phinx\Migration\Manager
      */
     public function setInput(InputInterface $input)
@@ -539,8 +540,8 @@ class Manager
         $this->getOutput()->writeln('');
         $this->getOutput()->writeln(
             ' ==' .
-            ' <info>' . $migration->getVersion() . ' ' . $migration->getName() . ':</info>' .
-            ' <comment>' . ($direction === MigrationInterface::UP ? 'migrating' : 'reverting') . '</comment>'
+            ' ' . $migration->getVersion() . ' ' . $migration->getName() . ':' .
+            ' ' . $this->getOutput()->color($direction === MigrationInterface::UP ? 'migrating' : 'reverting')
         );
         $migration->preFlightCheck($direction);
         // Execute the migration and log the time elapsed.
@@ -549,9 +550,9 @@ class Manager
         $end = microtime(true);
         $this->getOutput()->writeln(
             ' ==' .
-            ' <info>' . $migration->getVersion() . ' ' . $migration->getName() . ':</info>' .
-            ' <comment>' . ($direction === MigrationInterface::UP ? 'migrated' : 'reverted') .
-            ' ' . sprintf('%.4fs', $end - $start) . '</comment>'
+            ' ' . $this->getOutput()->infoText($migration->getVersion() . ' ' . $migration->getName() . ':') .
+            ' ' . $this->getOutput()->tipText(($direction === MigrationInterface::UP ? 'migrated' : 'reverted') .
+                ' ' . sprintf('%.4fs', $end - $start))
         );
     }
 
@@ -566,11 +567,8 @@ class Manager
      */
     public function rollback($environment, $target = null, $force = false, $targetMustMatchVersion = true, $fake = false)
     {
-        // note that the migrations are indexed by name (aka creation time) in ascending order
         $migrations = $this->getMigrations($environment);
-        // note that the version log are also indexed by name with the proper ascending order according to the version order
         $executedVersions = $this->getEnvironment($environment)->getVersionLog();
-        // get a list of migrations sorted in the opposite way of the executed versions
         $sortedMigrations = [];
         foreach ($executedVersions as $versionCreationTime => &$executedVersion) {
             // if we have a date (ie. the target must not match a version) and we are sorting by execution time, we
@@ -599,7 +597,7 @@ class Manager
             if ($found !== false) {
                 $target = (string)$found;
             } else {
-                $this->getOutput()->writeln("<error>No migration found with name ($target)</error>");
+                $this->getOutput()->writeln($this->getOutput()->errorText("No migration found with name ($target)"));
 
                 return;
             }
@@ -607,7 +605,7 @@ class Manager
         // Check we have at least 1 migration to revert
         $executedVersionCreationTimes = array_keys($executedVersions);
         if (empty($executedVersionCreationTimes) || $target == end($executedVersionCreationTimes)) {
-            $this->getOutput()->writeln('<error>No migrations to rollback</error>');
+            $this->getOutput()->writeln(PHP_EOL . $this->getOutput()->warningText('No migrations to rollback'));
 
             return;
         }
@@ -619,7 +617,7 @@ class Manager
         }
         // If the target must match a version, check the target version exists
         if ($targetMustMatchVersion && 0 !== $target && !isset($migrations[$target])) {
-            $this->getOutput()->writeln("<error>Target version ($target) not found</error>");
+            $this->getOutput()->writeln(($this->getOutput()->errorText("Target version ($target) not found")));
 
             return;
         }
@@ -638,7 +636,7 @@ class Manager
                     }
                 }
                 if (0 != $executedVersion['breakpoint'] && !$force) {
-                    $this->getOutput()->writeln('<error>Breakpoint reached. Further rollbacks inhibited.</error>');
+                    $this->getOutput()->writeln(($this->getOutput()->errorText('Breakpoint reached. Further rollbacks inhibited.')));
                     break;
                 }
                 $this->executeMigration($environment, $migration, MigrationInterface::DOWN, $fake);
@@ -646,7 +644,7 @@ class Manager
             }
         }
         if (!$rollbacked) {
-            $this->getOutput()->writeln('<error>No migrations to rollback</error>');
+            $this->getOutput()->writeln(PHP_EOL . $this->getOutput()->warningText('No migrations to rollback'));
         }
     }
 
@@ -817,8 +815,8 @@ class Manager
         $this->getOutput()->writeln('');
         $this->getOutput()->writeln(
             ' ==' .
-            ' <info>' . $seed->getName() . ':</info>' .
-            ' <comment>seeding</comment>'
+            ' ' . $this->getOutput()->infoText($seed->getName() . ':') .
+            $this->getOutput()->warningText(' seeding')
         );
         // Execute the seeder and log the time elapsed.
         $start = microtime(true);
@@ -826,9 +824,9 @@ class Manager
         $end = microtime(true);
         $this->getOutput()->writeln(
             ' ==' .
-            ' <info>' . $seed->getName() . ':</info>' .
-            ' <comment>seeded' .
-            ' ' . sprintf('%.4fs', $end - $start) . '</comment>'
+            $this->getOutput()->infoText(' ' . $seed->getName() . ':') .
+            $this->getOutput()->warningText(' seeded' .
+                ' ' . sprintf('%.4fs', $end - $start) . '')
         );
     }
 
@@ -875,8 +873,8 @@ class Manager
         $versions = $env->getVersionLog();
         $this->getOutput()->writeln(
             ' Breakpoint ' . ($versions[$version]['breakpoint'] ? 'set' : 'cleared') .
-            ' for <info>' . $version . '</info>' .
-            ' <comment>' . $migrations[$version]->getName() . '</comment>'
+            ' for ' . $this->getOutput()->infoText($version) .
+            $this->getOutput()->warningText(' ' . $migrations[$version]->getName())
         );
     }
 

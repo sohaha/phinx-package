@@ -4,44 +4,14 @@ namespace Phinx\Console\Command;
 
 use Phinx\Migration\Manager\Environment;
 use Phinx\Util\Util;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
+use Zls\Migration\Argv as InputInterface;
 
 /**
- * @author Leonid Kuzmin <lndkuzmin@gmail.com>
+ * Verify the configuration file
  */
 class Test extends AbstractCommand
 {
-    /**
-     * {@inheritdoc}
-     */
-    protected function configure()
-    {
-        parent::configure();
-        $this->addOption('--environment', '-e', InputOption::VALUE_REQUIRED, 'The target environment');
-        $this->setName($this->getName() ?: 'test')
-             ->setDescription('Verify the configuration file')
-             ->setHelp(
-                 <<<EOT
-The <info>test</info> command verifies the YAML configuration file and optionally an environment
-
-<info>phinx test</info>
-<info>phinx test -e development</info>
-
-EOT
-             );
-    }
-
-    /**
-     * Verify configuration file
-     * @param \Symfony\Component\Console\Input\InputInterface   $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     * @throws \RuntimeException
-     * @throws \InvalidArgumentException
-     * @return void
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    public function command(InputInterface $input, OutputInterface $output)
     {
         $this->loadConfig($input, $output);
         $this->loadManager($input, $output);
@@ -55,7 +25,7 @@ EOT
             [$this, 'verifySeedDirectory'],
             Util::globAll($this->getConfig()->getSeedPaths())
         );
-        $envName = $input->getOption('environment');
+        $envName = parent::$environment;
         if ($envName) {
             if (!$this->getConfig()->hasEnvironment($envName)) {
                 throw new \InvalidArgumentException(sprintf(
@@ -63,7 +33,7 @@ EOT
                     $envName
                 ));
             }
-            $output->writeln(sprintf('<info>validating environment</info> %s', $envName));
+            $output->writeln(sprintf($output->infoText('validating environment %s'), $envName));
             $environment = new Environment(
                 $envName,
                 $this->getConfig()->getEnvironment($envName)
@@ -71,6 +41,6 @@ EOT
             // validate environment connection
             $environment->getAdapter()->connect();
         }
-        $output->writeln('<info>success!</info>');
+        $output->writeln($output->infoText('success!'));
     }
 }

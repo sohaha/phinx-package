@@ -2,83 +2,40 @@
 
 namespace Phinx\Console\Command;
 
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
+use Z;
+use Zls\Migration\Argv as InputInterface;
 
 class Rollback extends AbstractCommand
 {
-    /**
-     * {@inheritdoc}
-     */
-    protected function configure()
-    {
-        parent::configure();
-        $this->addOption('--environment', '-e', InputOption::VALUE_REQUIRED, 'The target environment');
-        $this->setName($this->getName() ?: 'rollback')
-             ->setDescription('Rollback the last or to a specific migration')
-             ->addOption('--target', '-t', InputOption::VALUE_REQUIRED, 'The version number to rollback to')
-             ->addOption('--date', '-d', InputOption::VALUE_REQUIRED, 'The date to rollback to')
-             ->addOption('--force', '-f', InputOption::VALUE_NONE, 'Force rollback to ignore breakpoints')
-             ->addOption('--dry-run', '-x', InputOption::VALUE_NONE, 'Dump query to standard output instead of executing it')
-             ->addOption('--fake', null, InputOption::VALUE_NONE, "Mark any rollbacks selected as run, but don\'t actually execute them")
-             ->addOption('--sql', null, InputOption::VALUE_REQUIRED)
-             ->setHelp(
-                 <<<EOT
-The <info>rollback</info> command reverts the last migration, or optionally up to a specific version
-
-<info>phinx rollback -e development</info>
-<info>phinx rollback -e development -t 20111018185412</info>
-<info>phinx rollback -e development -d 20111018</info>
-<info>phinx rollback -e development -v</info>
-<info>phinx rollback -e development -t 20111018185412 -f</info>
-
-If you have a breakpoint set, then you can rollback to target 0 and the rollbacks will stop at the breakpoint.
-<info>phinx rollback -e development -t 0 </info>
-
-The <info>version_order</info> configuration option is used to determine the order of the migrations when rolling back.
-This can be used to allow the rolling back of the last executed migration instead of the last created one, or combined
-with the <info>-d|--date</info> option to rollback to a certain date using the migration start times to order them.
-
-EOT
-             );
-    }
-
-    /**
-     * Rollback the migration.
-     * @param \Symfony\Component\Console\Input\InputInterface   $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     * @return void
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    public function command(InputInterface $input, OutputInterface $output)
     {
         $this->bootstrap($input, $output);
-        $environment = $input->getOption('environment');
-        $version = $input->getOption('target');
-        $date = $input->getOption('date');
-        $force = (bool)$input->getOption('force');
-        $fake = (bool)$input->getOption('fake');
+        $version = parent::$target;
+        $environment = parent::$environment;
+        $date = parent::$date;
+        $fake = parent::$fake;
+        $force = parent::$force;
         $config = $this->getConfig();
         if ($environment === null) {
             $environment = $config->getDefaultEnvironment();
-            $output->writeln('<comment>warning</comment> no environment specified, defaulting to: ' . $environment);
+            $output->writeln($output->warningText('warning') . ' no environment specified, defaulting to: ' . $environment);
         } else {
-            $output->writeln('<info>using environment</info> ' . $environment);
+            $output->writeln($output->infoText('using environment') . ' ' . $environment);
         }
         $envOptions = $config->getEnvironment($environment);
         if (isset($envOptions['adapter'])) {
-            $output->writeln('<info>using adapter</info> ' . $envOptions['adapter']);
+            $output->writeln($output->infoText('using adapter ') . $envOptions['adapter']);
         }
         if (isset($envOptions['wrapper'])) {
-            $output->writeln('<info>using wrapper</info> ' . $envOptions['wrapper']);
+            $output->writeln($output->infoText('using wrapper ') . $envOptions['wrapper']);
         }
         if (isset($envOptions['name'])) {
-            $output->writeln('<info>using database</info> ' . $envOptions['name']);
+            $output->writeln($output->infoText('using database ') . $envOptions['name']);
         }
         $versionOrder = $this->getConfig()->getVersionOrder();
-        $output->writeln('<info>ordering by </info>' . $versionOrder . " time");
+        $output->writeln($output->infoText('ordering by ') . $versionOrder . " time");
         if ($fake) {
-            $output->writeln('<comment>warning</comment> performing fake rollbacks');
+            $output->writeln($output->warningText('warning') . ' performing fake rollbacks');
         }
         // rollback the specified environment
         if ($date === null) {
@@ -88,11 +45,11 @@ EOT
             $targetMustMatchVersion = false;
             $target = $this->getTargetFromDate($date);
         }
-        $start = microtime(true);
+        z::debug('runing');
         $this->getManager()->rollback($environment, $target, $force, $targetMustMatchVersion, $fake);
-        $end = microtime(true);
+        $end = z::debug('runing', true);
         $output->writeln('');
-        $output->writeln('<comment>All Done. Took ' . sprintf('%.4fs', $end - $start) . '</comment>');
+        $output->writeln('All Done. ' . $end);
     }
 
     /**
@@ -125,4 +82,21 @@ EOT
 
         return $dateTime->format('YmdHis');
     }
+
+    public function description()
+    {
+        return 'Rollback the last or to a specific migration';
+    }
+
+    public function options()
+    {
+        return [
+            '-t, --target' => 'The version number to rollback to',
+            '-d, --date'   => 'The date to rollback to',
+            '-f, --force'  => 'Force rollback to ignore breakpoints',
+            '    --fake'   => 'Mark any rollbacks selected as run, but don\'t actually execute them',
+            '    --sql'    => 'Show Sql',
+        ];
+    }
+
 }
